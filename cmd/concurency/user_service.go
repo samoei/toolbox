@@ -2,6 +2,8 @@ package concurency
 
 import (
 	"fmt"
+	"sync"
+	"time"
 
 	"github.com/spf13/cobra"
 )
@@ -9,7 +11,7 @@ import (
 var UserProfileCommand = &cobra.Command{
 	Use:   "userprofile",
 	Short: "Runs the user profile program",
-	Run:   runUserProfile,
+	RunE:  runUserProfile,
 }
 
 type UserProfile struct {
@@ -19,58 +21,93 @@ type UserProfile struct {
 	Friends  []int
 }
 
+type Response struct {
+	data any
+	err  error
+}
+
 func handleUserProfile(userId int) (*UserProfile, error) {
-	comments, err := getComments(userId)
+	var (
+		respCh      = make(chan Response, 3)
+		wg          = &sync.WaitGroup{}
+		now         = time.Now()
+		userProfile = &UserProfile{
+			Id: userId,
+		}
+	)
 
-	if err != nil {
-		return nil, err
-	}
-	likes, err := getLikes(userId)
+	go getComments(userId, respCh, wg)
+	go getLikes(userId, respCh, wg)
+	go getFriends(userId, respCh, wg)
 
-	if err != nil {
-		return nil, err
-	}
-	friends, err := getFriends(userId)
+	wg.Add(3)
+	wg.Wait()
+	close(respCh)
 
-	if err != nil {
-		return nil, err
+	fmt.Println("Time 4 Now:", now)
+	for resp := range respCh {
+		if resp.err != nil {
+			return nil, resp.err
+		}
+		fmt.Println(resp)
+
+		switch msg := resp.data.(type) {
+		case int:
+			userProfile.Likes = msg
+		case []int:
+			userProfile.Friends = msg
+		case []string:
+			userProfile.Comments = msg
+		}
 	}
 
-	userProfile := &UserProfile{
-		Id:       userId,
-		Comments: comments,
-		Likes:    likes,
-		Friends:  friends,
-	}
 	return userProfile, nil
 }
 
-func getComments(userId int) ([]string, error) {
+func getComments(userId int, respCh chan Response, wg *sync.WaitGroup) {
+	time.Sleep(time.Second * 1)
 	comments := []string{
 		"Hello World",
 		"I love this. Its amazing",
 		"Honestly speaking this should not be the way to go",
 		"Where is this country heading?",
 	}
-
-	return comments, nil
+	respCh <- Response{
+		data: comments,
+		err:  nil,
+	}
+	wg.Done()
 }
 
-func getLikes(userId int) (int, error) {
-	return 54, nil
+func getLikes(userId int, respCh chan Response, wg *sync.WaitGroup) {
+	time.Sleep(time.Second * 1)
+	respCh <- Response{
+		data: 54,
+		err:  nil,
+	}
+	wg.Done()
 }
 
-func getFriends(userId int) ([]int, error) {
-	return []int{102, 896, 563, 89, 256}, nil
+func getFriends(userId int, respCh chan Response, wg *sync.WaitGroup) {
+	time.Sleep(time.Second * 2)
+	respCh <- Response{
+		data: []int{102, 896, 563, 89, 256},
+		err:  nil,
+	}
+	wg.Done()
 }
 
-func runUserProfile(_ *cobra.Command, _ []string) {
+func runUserProfile(_ *cobra.Command, _ []string) error {
+	now := time.Now()
+	fmt.Println("Time Now:", now)
 	userProfile, err := handleUserProfile(10)
 
 	if err != nil {
-		fmt.Print("Error:", err)
+		return fmt.Errorf("An error occurred: '%v'", err)
 	}
 
 	fmt.Println(userProfile)
 
+	fmt.Printf("It took %v to fetch user profile", time.Since(now))
+	return nil
 }
