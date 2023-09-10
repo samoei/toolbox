@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	concurency "github.com/samoei/toolbox/cmd/conc"
+	"github.com/samoei/toolbox/cmd/concurency"
 	"github.com/spf13/cobra"
 )
 
