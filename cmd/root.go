@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/samoei/toolbox/cmd/conc"
+	concurency "github.com/samoei/toolbox/cmd/conc"
 	"github.com/spf13/cobra"
 )
 
@@ -23,5 +23,5 @@ func Execute() {
 	}
 }
 func init() {
-	rootCmd.AddCommand(conc.Command)
+	rootCmd.AddCommand(concurency.Command)
 }
