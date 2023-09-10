@@ -10,5 +10,8 @@ build:
 concurency: build
 	@./bin/app concurency
 
+userprofile: build
+	@./bin/app userprofile
+
 test:
 	go test -v ./...

@@ -23,5 +23,6 @@ func Execute() {
 	}
 }
 func init() {
-	rootCmd.AddCommand(concurency.Command)
+	rootCmd.AddCommand(concurency.ConcurencyCommand)
+	rootCmd.AddCommand(concurency.UserProfileCommand)
 }

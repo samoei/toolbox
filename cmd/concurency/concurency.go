@@ -7,13 +7,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var Command = &cobra.Command{
+var ConcurencyCommand = &cobra.Command{
 	Use:   "concurency",
 	Short: "Starts the backoffice reverse proxy",
-	Run:   run,
+	Run:   runConcurency,
 }
 
-func run(_ *cobra.Command, _ []string) {
+func runConcurency(_ *cobra.Command, _ []string) {
 
 	//iknitiase the server
 	serv := newServer()
